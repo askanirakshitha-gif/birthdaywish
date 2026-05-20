@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Something Special For You ✨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* =============================================
+       ROOT VARIABLES — change colours here
+    ============================================= */
+    :root {
+      --bg:        #080c10;
+      --bg2:       #0d1117;
+      --accent:    #c8a96e;      /* gold  */
+      --accent2:   #6ec8c0;      /* teal  */
+      --text:      #e8e0d4;
+      --text-dim:  #9a9080;
+      --card-bg:   rgba(255,255,255,0.04);
+      --glow:      rgba(200,169,110,0.25);
+      --glow2:     rgba(110,200,192,0.20);
+    }
+
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; cursor: none; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+    ::selection { background: var(--accent); color: #000; }
+
+    /* =============================================
+       CUSTOM CURSOR
+    ============================================= */
+    #cursor-dot, #cursor-ring {
+      position: fixed; border-radius: 50%;
+      pointer-events: none; z-index: 9999; transition: opacity .3s;
+    }
+    #cursor-dot  { width: 6px; height: 6px; background: var(--accent); transform: translate(-50%,-50%); }
+    #cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(200,169,110,.5);
+      transform: translate(-50%,-50%);
+      transition: width .25s, height .25s, background .25s;
+    }
+    body:hover #cursor-dot, body:hover #cursor-ring { opacity: 1; }
+    a:hover ~ #cursor-ring, button:hover ~ #cursor-ring { width: 52px; height: 52px; background: var(--glow); }
+
+    /* =============================================
+       LOADING SCREEN
+    ============================================= */
+    #loader {
+      position: fixed; inset: 0; z-index: 8888;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity .9s ease, visibility .9s;
+    }
+    #loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-line {
+      width: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: lineGrow 2.2s ease forwards;
+    }
+    @keyframes lineGrow { to { width: 220px; } }
+    .loader-text {
+      margin-top: 22px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      letter-spacing: .35em;
+      color: var(--text-dim);
+      animation: fadeUp .8s 1.4s ease forwards; opacity: 0; transform: translateY(10px);
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* =============================================
+       PARTICLES CANVAS
+    ============================================= */
+    #particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+    /* =============================================
+       MUSIC BUTTON
+    ============================================= */
+    #music-btn {
+      position: fixed; bottom: 28px; right: 28px; z-index: 500;
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 1.5px solid var(--accent);
+      background: rgba(200,169,110,0.08);
+      backdrop-filter: blur(12px);
+      color: var(--accent);
+      font-size: 1.1rem; cursor: none;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .3s, box-shadow .3s;
+    }
+    #music-btn:hover { background: rgba(200,169,110,0.18); box-shadow: 0 0 22px var(--glow); }
+    #music-btn .ripple {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(200,169,110,0.4);
+      animation: rippleOut 2s infinite;
+    }
+    .ripple:nth-child(1) { width: 60px; height: 60px; animation-delay: 0s; }
+    .ripple:nth-child(2) { width: 76px; height: 76px; animation-delay: .6s; }
+    @keyframes rippleOut {
+      from { opacity: .6; transform: scale(.8); }
+      to   { opacity: 0;  transform: scale(1.4); }
+    }
+
+    /* =============================================
+       NAV DOTS
+    ============================================= */
+    #nav-dots {
+      position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 10px; z-index: 500;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--text-dim); cursor: none;
+      transition: background .3s, transform .3s, box-shadow .3s;
+    }
+    .dot.active { background: var(--accent); transform: scale(1.5); box-shadow: 0 0 10px var(--glow); }
+
+    /* =============================================
+       SECTIONS SHARED
+    ============================================= */
+    section {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: clamp(60px, 10vw, 120px) clamp(20px, 6vw, 80px);
+    }
+
+    /* =============================================
+       SECTION 1 — LANDING
+    ============================================= */
+    #landing {
+      flex-direction: column; text-align: center;
+      background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(200,169,110,.07) 0%, transparent 70%);
+    }
+    .landing-tag {
+      font-size: .75rem; letter-spacing: .4em; color: var(--accent);
+      text-transform: uppercase; margin-bottom: 28px;
+      opacity: 0; animation: fadeUp .7s .4s forwards;
+    }
+    .landing-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.6rem, 8vw, 6.5rem);
+      font-weight: 300; line-height: 1.1;
+      opacity: 0; animation: fadeUp .9s .7s forwards;
+    }
+    .landing-title em { font-style: italic; color: var(--accent); }
+    /* ✏️  CHANGE FRIEND NAME → edit "Alex" below AND in the HTML below */
+    .landing-sub {
+      margin-top: 18px;
+      font-size: clamp(.95rem, 2.5vw, 1.2rem);
+      color: var(--text-dim); max-width: 500px;
+      opacity: 0; animation: fadeUp .7s 1s forwards;
+    }
+    .start-btn {
+      margin-top: 48px;
+      padding: 16px 44px;
+      border: 1.5px solid var(--accent);
+      background: transparent; color: var(--accent);
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; letter-spacing: .15em;
+      text-transform: uppercase; cursor: none;
+      position: relative; overflow: hidden;
+      transition: color .35s;
+      opacity: 0; animation: fadeUp .7s 1.3s forwards;
+    }
+    .start-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--accent);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .35s ease;
+    }
+    .start-btn:hover::before { transform: scaleX(1); }
+    .start-btn:hover { color: #000; }
+    .start-btn span { position: relative; z-index: 1; }
+    .scroll-hint {
+      position: absolute; bottom: 36px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: var(--text-dim); font-size: .75rem; letter-spacing: .25em;
+      opacity: 0; animation: fadeUp .7s 1.8s forwards;
+    }
+    .scroll-hint-line {
+      width: 1px; height: 48px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: lineDown 2s infinite;
+    }
+    @keyframes lineDown {
+      0%   { transform: scaleY(0); transform-origin: top; opacity: 1; }
+      50%  { transform: scaleY(1); transform-origin: top; }
+      51%  { transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+    }
+
+    /* =============================================
+       SECTION 2 — GALLERY
+    ============================================= */
+    #gallery { flex-direction: column; gap: 48px; }
+    .section-label {
+      font-size: .72rem; letter-spacing: .45em; text-transform: uppercase;
+      color: var(--accent); text-align: center;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 300;
+      text-align: center; line-height: 1.2;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px; width: 100%; max-width: 1100px;
+    }
+    .polaroid {
+      background: #1a1a22;
+      padding: 14px 14px 40px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+      transform: rotate(var(--rot, -2deg));
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .4s;
+      cursor: none;
+      opacity: 0; transform: rotate(var(--rot,-2deg)) translateY(30px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .polaroid.visible {
+      opacity: 1; transform: rotate(var(--rot,-2deg)) translateY(0);
+    }
+    .polaroid:hover {
+      transform: rotate(0deg) scale(1.05) translateY(-6px);
+      box-shadow: 0 20px 60px rgba(200,169,110,.18);
+      z-index: 10;
+    }
+    .polaroid img {
+      width: 100%; aspect-ratio: 1; object-fit: cover;
+      display: block; filter: saturate(.85) contrast(1.05);
+      transition: filter .4s;
+    }
+    .polaroid:hover img { filter: saturate(1.1) contrast(1.08); }
+    .polaroid-cap {
+      text-align: center; margin-top: 12px;
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: .95rem; color: var(--text-dim);
+    }
+
+    /* LIGHTBOX */
+    #lightbox {
+      position: fixed; inset: 0; z-index: 700;
+      background: rgba(0,0,0,.92); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .35s;
+    }
+    #lightbox.open { opacity: 1; pointer-events: all; }
+    #lightbox img {
+      max-width: 88vw; max-height: 82vh;
+      border: 1px solid rgba(200,169,110,.2);
+      box-shadow: 0 0 80px rgba(200,169,110,.1);
+    }
+    #lb-close {
+      position: absolute; top: 24px; right: 30px;
+      font-size: 1.8rem; color: var(--text-dim);
+      cursor: none; transition: color .2s;
+    }
+    #lb-close:hover { color: var(--accent); }
+
+    /* =============================================
+       SECTION 3 — TIMELINE
+    ============================================= */
+    #timeline { flex-direction: column; gap: 56px; }
+    .timeline-wrap {
+      position: relative; max-width: 760px; width: 100%;
+      padding-left: clamp(24px, 6vw, 56px);
+    }
+    .timeline-wrap::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--accent), var(--accent2), transparent);
+    }
+    .t-card {
+      position: relative; margin-bottom: 48px;
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,.06);
+      padding: 28px 30px; border-radius: 2px;
+      backdrop-filter: blur(6px);
+      opacity: 0; transform: translateX(-24px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .t-card.visible { opacity: 1; transform: translateX(0); }
+    .t-card::before {
+      content: ''; position: absolute;
+      left: calc(-1 * clamp(24px, 6vw, 56px) - 4px); top: 28px;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--glow);
+    }
+    .t-year {
+      font-size: .7rem; letter-spacing: .35em; color: var(--accent2);
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .t-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.55rem; font-weight: 400; margin-bottom: 10px;
+    }
+    .t-body { font-size: .95rem; color: var(--text-dim); line-height: 1.75; }
+    .t-emoji { font-size: 1.5rem; float: right; margin-left: 10px; }
+
+    /* =============================================
+       SECTION 4 — COUNTDOWN
+    ============================================= */
+    #countdown {
+      flex-direction: column; gap: 32px; text-align: center;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(110,200,192,.06) 0%, transparent 70%);
+    }
+    .countdown-flex {
+      display: flex; gap: clamp(16px, 4vw, 48px); flex-wrap: wrap; justify-content: center;
+    }
+    .cd-block {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .cd-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 10vw, 7rem); font-weight: 300;
+      color: var(--accent2); line-height: 1;
+      text-shadow: 0 0 40px var(--glow2);
+    }
+    .cd-label {
+      font-size: .68rem; letter-spacing: .4em; color: var(--text-dim); text-transform: uppercase;
+    }
+    .cd-sep {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem,8vw,5rem); color: var(--text-dim); align-self: flex-start; padding-top: 8px;
+    }
+
+    /* =============================================
+       SECTION 5 — FINAL MESSAGE
+    ============================================= */
+    #final {
+      flex-direction: column; text-align: center; gap: 32px;
+      background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(200,169,110,.06) 0%, transparent 70%);
+    }
+    .final-message {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 4.5vw, 3.2rem); font-weight: 300;
+      line-height: 1.5; max-width: 780px;
+      min-height: 4em;
+    }
+    .final-message em { color: var(--accent); font-style: italic; }
+    #type-cursor {
+      display: inline-block; width: 2px; height: 1em;
+      background: var(--accent); vertical-align: middle;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .heartbeat {
+      display: inline-block;
+      animation: hb 1.2s infinite;
+      color: var(--accent); font-size: 2rem;
+    }
+    @keyframes hb {
+      0%,100%{ transform: scale(1); }
+      14%     { transform: scale(1.3); }
+      28%     { transform: scale(1); }
+      42%     { transform: scale(1.2); }
+    }
+    .sign-off {
+      font-size: .82rem; letter-spacing: .3em;
+      color: var(--text-dim); text-transform: uppercase;
+      opacity: 0; transition: opacity 1s ease;
+    }
+    .sign-off.visible { opacity: 1; }
+
+    /* EASTER EGG BUTTON */
+    #easter-btn {
+      position: fixed; bottom: 28px; left: 28px; z-index: 500;
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,.12);
+      background: transparent; cursor: none;
+      color: rgba(255,255,255,.08);
+      font-size: 1.1rem; transition: color .3s, border-color .3s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #easter-btn:hover { color: var(--accent2); border-color: var(--accent2); }
+
+    /* TOAST */
+    #toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: var(--card-bg); border: 1px solid var(--accent2);
+      backdrop-filter: blur(12px);
+      padding: 14px 28px; border-radius: 2px;
+      font-size: .9rem; color: var(--accent2); letter-spacing: .08em;
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s;
+      z-index: 600;
+    }
+    #toast.show { opacity: 1; }
+
+    /* CONFETTI canvas */
+    #confetti-canvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 600;
+    }
+
+    /* =============================================
+       RESPONSIVE TWEAKS
+    ============================================= */
+    @media (max-width: 600px) {
+      #nav-dots { display: none; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ CUSTOM CURSOR ══════════════════════════ -->
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<!-- ══ LOADING SCREEN ════════════════════════ -->
+<div id="loader">
+  <div class="loader-line"></div>
+  <!-- ✏️ Change loading message here -->
+  <p class="loader-text">preparing your surprise&hellip;</p>
+</div>
+
+<!-- ══ PARTICLES BACKGROUND ══════════════════ -->
+<canvas id="particles"></canvas>
+
+<!-- ══ CONFETTI CANVAS ════════════════════════ -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ══ MUSIC BUTTON ══════════════════════════ -->
+<!--
+  🎵 HOW TO ADD YOUR SONG:
+  1. Place your audio file (mp3/ogg) in the same folder as this HTML file.
+  2. Change the src attribute below to your file name, e.g.: src="mysong.mp3"
+-->
+<audio id="bg-music" loop>
+  <source src="c:\Users\askan\Downloads\birthday song.mpeg" type="audio/mpeg"/>
+  <!-- ✏️ Replace the URL above with your own song path, e.g.: <source src="song.mp3" type="audio/mpeg"/> -->
+</audio>
+<button id="music-btn" title="Toggle music" aria-label="Toggle music">
+  <div class="ripple"></div>
+  <div class="ripple"></div>
+  <span id="music-icon">♪</span>
+</button>
+
+<!-- ══ NAV DOTS ───────────────────────────── -->
+<nav id="nav-dots" aria-label="Section navigation">
+  <div class="dot active" data-target="landing"  title="Welcome"></div>
+  <div class="dot"        data-target="gallery"  title="Memories"></div>
+  <div class="dot"        data-target="timeline" title="Our Story"></div>
+  <div class="dot"        data-target="countdown" title="Countdown"></div>
+  <div class="dot"        data-target="final"    title="Message"></div>
+</nav>
+
+<!-- ══ EASTER EGG ════════════════════════════ -->
+<button id="easter-btn" title="psst…" aria-label="Secret button">✦</button>
+
+<!-- ══ TOAST ════════════════════════════════ -->
+<div id="toast">you found the secret ✦ you deserve the world 🌍</div>
+
+<!-- ══ LIGHTBOX ══════════════════════════════ -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <span id="lb-close" role="button" tabindex="0" aria-label="Close">✕</span>
+  <img id="lb-img" src="" alt="Memory"/>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 1 ─ LANDING
+════════════════════════════════════════════ -->
+<section id="landing">
+  <p class="landing-tag">a little something for you</p>
+  <!--  ✏️  Change "Alex" to your friend's name  -->
+  <h1 class="landing-title">Hey <em>bhai</em>,<br/>I made something<br/>just for you ✦</h1>
+  <!--  ✏️  Change the subtitle below  -->
+  <p class="landing-sub">A small collection of memories, moments, and things I never quite said out loud.</p>
+  <button class="start-btn" id="start-btn"><span>begin the page</span></button>
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-hint-line"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     SECTION 2 ─ GALLERY
+════════════════════════════════════════════ -->
+<section id="gallery">
+  <p class="section-label">memories</p>
+  <h2 class="section-title">mad of uniqueness  </h2>
+  <div class="gallery-grid">
+    <!--
+      📸 HOW TO CHANGE PHOTOS:
+      Replace the src="..." value of each <img> with your own image path.
+      e.g.: src="photo1.jpg"
+      Change the caption text inside <p class="polaroid-cap">
+      Add more .polaroid blocks to add more photos.
+      The --rot CSS variable controls the tilt angle.
+    -->
+    <div class="polaroid" style="--rot:-3deg" data-src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600">
+      <img src="c:\Users\askan\OneDrive\Pictures\Saved Pictures\WhatsApp Image 2026-05-19 at 18.07.53 (1).jpeg" alt="Memory 1" loading="lazy"/>
+      <p class="polaroid-cap">that south indian look ☀️</p>
+    </div>
+    <div class="polaroid" style="--rot:2deg" data-src="https://images.unsplash.com/photo-1516939884455-1445c8652f83?w=600">
+      <img src="C:\Users\askan\OneDrive\Pictures\Saved Pictures\WhatsApp Image 2026-05-19 at 18.07.53.jpeg" alt="Memory 2" loading="lazy"/>
+      <p class="polaroid-cap">selfie pose</p>
+    </div>
+    <div class="polaroid" style="--rot:-1.5deg" data-src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600">
+      <img src="c:\Users\askan\OneDrive\Pictures\Saved Pictures\WhatsApp Image 2026-05-19 at 18.07.54.jpeg" alt="Memory 3" loading="lazy"/>
+      <p class="polaroid-cap">😂</p>
+    </div>
+    <div class="polaroid" style="--rot:3deg" data-src="https://images.unsplash.com/photo-1506869640319-fe1a24fd76dc?w=600">
+      <img src="c:\Users\askan\Downloads\WhatsApp Image 2026-05-19 at 18.42.37.jpeg" alt="Memory 4" loading="lazy"/>
+      <p class="polaroid-cap">chilling 🗺️</p>
+    </div>
+   <div class="polaroid" style="--rot:-3deg" data-src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600">
+      <img src="c:\Users\askan\Downloads\WhatsApp Image 2026-05-19 at 18.32.05.jpeg" alt="Memory 1" loading="lazy"/>
+      <p class="polaroid-cap">that perfect friendship ☀️</p>
+    </div>
+    <div class="polaroid" style="--rot:-3deg" data-src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600">
+      <img src="c:\Users\askan\Downloads\WhatsApp Image 2026-05-19 at 18.30.05.jpeg" alt="Memory 1" loading="lazy"/>
+      <p class="polaroid-cap">expression ☀️</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     SECTION 3 ─ TIMELINE
+════════════════════════════════════════════ -->
+<section id="timeline">
+
+  <h2 class="section-title">BIRTHDAY SHOUTOUT</h2>
+  <div class="timeline-wrap">
+    <!--
+      ✏️ EDIT TIMELINE CARDS:
+      Change .t-year → the date/year label
+      Change .t-title → the heading
+      Change .t-body → the memory/story text
+      Change .t-emoji → the emoji
+      Add more .t-card blocks for more memories.
+    -->
+    <div class="t-card">
+      <span class="t-emoji">🥰</span>
+      <p class="t-year">The Beginning </p>
+      <h3 class="t-title">When we first met</h3>
+      <p class="t-body">I don't think either of us knew that a random conversation would turn into something this meaningful. You made it very easy to feel at home.</p>
+    </div>
+    <div class="t-card">
+      <span class="t-emoji">🎂</span>
+      <p class="t-year">Happy wala  birthday bhai</p>
+      <h3 class="t-title">That absolutely unhinged plan </h3>
+      <p class="t-body"> first of all sorry for editing ur photos without ur permission this is my first time wishing someone in different and special , not even for my brother i did, agar kuch galti hein hoga statements mein tho chod dho..</p>
+    </div>
+    <div class="t-card">
+      <span class="t-emoji">🤩</span>
+      <p class="t-year">The Real Change</p>
+      <h3 class="t-title">You changed everything</h3>
+      <p class="t-body">The first person in my life who has helped me,Turned me back as myself, mein ye bhi nhi soch sakti how i was before and now??.... i'm really lucky ,mein tumhe kabhi bhi ek dosth ke jaise dekhi hi nhi thi agar mera bada bhai hota tho mostly tumare jaise hi hota . sabhi sochthe hein ki mein thumse daarthi hu, lekhin vo daar nhi hein 
+        its respect that comes automatically ,but i dont know y? ..</p>
+    </div>
+    <div class="t-card">
+      <span class="t-emoji">🏆</span>
+      <p class="t-year">created my happiness after my family </p>
+      <h3 class="t-title"></h3>
+      <p class="t-body">and one more thing i was literally very happy on by birthday ....bcoz of roast and one more was u.. thanks for it.. I really dont know to how express but yes, i strongly believe that u will be shorely succeed in your life, but dont loose ur patience...  </p>
+    </div>
+    <div class="t-card">
+      <span class="t-emoji">♾️♾️♾️♾️♾️♾️</span>
+      <p class="t-year">i didnot wished you as many times u wished me..</p>
+      <h3 class="t-title"></h3>
+      <p class="t-body">Not everyone stays when things get hard. You did. That says more about who you are than any good moment ever could.last but not the least,, Celebrate this moment !! a VERY HAPPIEST BIRTHDAY TO U BHAI.. * INFINITY</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     SECTION 4 ─ COUNTDOWN
+════════════════════════════════════════════ -->
+<section id="countdown">
+  <p class="section-label">counting down</p>
+  <!--  ✏️  Change the occasion text  -->
+  <h2 class="section-title">Until your special day ✦</h2>
+  <div class="countdown-flex">
+    <div class="cd-block"><div class="cd-num" id="cd-days">00</div><div class="cd-label">days</div></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-block"><div class="cd-num" id="cd-hrs">00</div><div class="cd-label">hours</div></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-block"><div class="cd-num" id="cd-min">00</div><div class="cd-label">minutes</div></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-block"><div class="cd-num" id="cd-sec">00</div><div class="cd-label">seconds</div></div>
+  </div>
+  <!--
+    ✏️  CHANGE TARGET DATE:
+    Find   const TARGET = new Date(...)   in the <script> below
+    and replace the date string with your event date.
+    Format: "YYYY-MM-DD" or "Month DD, YYYY HH:MM:SS"
+  -->
+</section>
+
+<!-- ════════════════════════════════════════════
+     SECTION 5 ─ FINAL MESSAGE
+════════════════════════════════════════════ -->
+<section id="final">
+  <p class="section-label">for you</p>
+  <p class="final-message" id="typed-msg"></p>
+  <div class="heartbeat">✦</div>
+  <!--  ✏️  Change sign-off name  -->
+  <p class="sign-off" id="sign-off">— with love, always ✦</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+/* ─────────────────────────────────────────────────────
+   ✏️  CUSTOMISE HERE:
+   1. FRIEND_NAME   → appears in the typed message
+   2. FINAL_MSG     → the big emotional final message
+   3. TARGET_DATE   → countdown target (YYYY, MM-1, DD)
+──────────────────────────────────────────────────────── */
+const FRIEND_NAME  = "SHUBHAM";
+// ✏️  Edit your final message here (use \n for line breaks)
+const FINAL_MSG    = "Hey " + FRIEND_NAME + ", I mean every single word of this.\nThank you for the laughs that hurt, the talks that healed,\nand for being exactly who you are.\nYou are, without question,\none of the best things in my life. \n✦ once again wishing u a very happiest birthday my dear sweetest brother";
+// ✏️  Set your countdown target date: new Date(YEAR, MONTH-1, DAY)
+const TARGET_DATE  = new Date(2026, 4, 30); // → Dec 31 2025
+
+
+/* ─────────────────────────────────────────────────────
+   LOADER
+──────────────────────────────────────────────────────── */
+window.addEventListener("load", () => {
+  setTimeout(() => document.getElementById("loader").classList.add("hidden"), 2600);
+});
+
+/* ─────────────────────────────────────────────────────
+   CUSTOM CURSOR
+──────────────────────────────────────────────────────── */
+const dot  = document.getElementById("cursor-dot");
+const ring = document.getElementById("cursor-ring");
+let mx=0, my=0, rx=0, ry=0;
+document.addEventListener("mousemove", e => { mx=e.clientX; my=e.clientY; });
+(function animCursor(){
+  dot.style.left  = mx+"px"; dot.style.top  = my+"px";
+  rx += (mx-rx)*.12;  ry += (my-ry)*.12;
+  ring.style.left = rx+"px"; ring.style.top = ry+"px";
+  requestAnimationFrame(animCursor);
+})();
+document.querySelectorAll("button,a,[role=button]").forEach(el=>{
+  el.addEventListener("mouseenter",()=>ring.style.cssText+="width:54px;height:54px;background:rgba(200,169,110,.12)");
+  el.addEventListener("mouseleave",()=>ring.style.cssText+="width:36px;height:36px;background:transparent");
+});
+
+/* ─────────────────────────────────────────────────────
+   PARTICLES
+──────────────────────────────────────────────────────── */
+(function initParticles(){
+  const c  = document.getElementById("particles");
+  const ctx= c.getContext("2d");
+  let W, H, pts=[];
+  function resize(){ W=c.width=innerWidth; H=c.height=innerHeight; }
+  resize(); window.addEventListener("resize", resize);
+  class Pt {
+    constructor(){
+      this.x  = Math.random()*W;
+      this.y  = Math.random()*H;
+      this.r  = Math.random()*1.4+.3;
+      this.vx = (Math.random()-.5)*.3;
+      this.vy = (Math.random()-.5)*.3;
+      this.a  = Math.random();
+      this.va = (Math.random()-.5)*.008;
+      this.gold = Math.random()>.5;
+    }
+    update(){
+      this.x+=this.vx; this.y+=this.vy;
+      this.a+=this.va;
+      if(this.a<=0||this.a>=1) this.va*=-1;
+      if(this.x<0)this.x=W; if(this.x>W)this.x=0;
+      if(this.y<0)this.y=H; if(this.y>H)this.y=0;
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle = this.gold
+        ? `rgba(200,169,110,${this.a*.6})`
+        : `rgba(110,200,192,${this.a*.4})`;
+      ctx.fill();
+    }
+  }
+  for(let i=0;i<90;i++) pts.push(new Pt());
+  (function loop(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{ p.update(); p.draw(); });
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ─────────────────────────────────────────────────────
+   MUSIC
+──────────────────────────────────────────────────────── */
+const audio = document.getElementById("bg-music");
+const musicBtn = document.getElementById("music-btn");
+const musicIcon = document.getElementById("music-icon");
+let playing = false;
+audio.volume = 0;
+function fadeVolume(target, ms){
+  const step = (target - audio.volume) / (ms/50);
+  const iv = setInterval(()=>{
+    audio.volume = Math.min(1, Math.max(0, audio.volume + step));
+    if((step>0&&audio.volume>=target)||(step<0&&audio.volume<=target)){ clearInterval(iv); audio.volume=target; }
+  },50);
+}
+musicBtn.addEventListener("click",()=>{
+  if(!playing){ audio.play().then(()=>{ fadeVolume(.45,2000); playing=true; musicIcon.textContent="‖"; }).catch(()=>{}); }
+  else { fadeVolume(0,800); setTimeout(()=>audio.pause(),900); playing=false; musicIcon.textContent="♪"; }
+});
+// Auto-try music on first interaction
+document.addEventListener("click", function tryMusic(){
+  if(!playing){ audio.play().then(()=>{ fadeVolume(.45,2500); playing=true; musicIcon.textContent="‖"; }).catch(()=>{}); }
+  document.removeEventListener("click", tryMusic);
+},{once:true});
+
+/* ─────────────────────────────────────────────────────
+   START BUTTON → smooth scroll
+──────────────────────────────────────────────────────── */
+document.getElementById("start-btn").addEventListener("click",()=>{
+  document.getElementById("gallery").scrollIntoView({behavior:"smooth"});
+});
+
+/* ─────────────────────────────────────────────────────
+   SCROLL ANIMATIONS (IntersectionObserver)
+──────────────────────────────────────────────────────── */
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add("visible"); });
+},{threshold:.15});
+document.querySelectorAll(".polaroid,.t-card").forEach(el=>observer.observe(el));
+
+// Stagger polaroid delays
+document.querySelectorAll(".polaroid").forEach((el,i)=>{
+  el.style.transitionDelay = (i*0.1)+"s";
+});
+
+/* ─────────────────────────────────────────────────────
+   LIGHTBOX
+──────────────────────────────────────────────────────── */
+const lb     = document.getElementById("lightbox");
+const lbImg  = document.getElementById("lb-img");
+const lbClose= document.getElementById("lb-close");
+document.querySelectorAll(".polaroid").forEach(card=>{
+  card.addEventListener("click",()=>{
+    lbImg.src = card.dataset.src;
+    lb.classList.add("open");
+  });
+});
+function closeLB(){ lb.classList.remove("open"); }
+lbClose.addEventListener("click", closeLB);
+lb.addEventListener("click", e=>{ if(e.target===lb) closeLB(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLB(); });
+
+/* ─────────────────────────────────────────────────────
+   NAV DOTS
+──────────────────────────────────────────────────────── */
+const sections = ["landing","gallery","timeline","countdown","final"];
+const dots = document.querySelectorAll(".dot");
+dots.forEach(d=>{
+  d.addEventListener("click",()=>{
+    document.getElementById(d.dataset.target).scrollIntoView({behavior:"smooth"});
+  });
+});
+const secObserver = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      dots.forEach(d=>d.classList.remove("active"));
+      const idx = sections.indexOf(e.target.id);
+      if(idx>-1) dots[idx].classList.add("active");
+    }
+  });
+},{threshold:.4});
+sections.forEach(id=>{ const el=document.getElementById(id); if(el) secObserver.observe(el); });
+
+/* ─────────────────────────────────────────────────────
+   COUNTDOWN
+──────────────────────────────────────────────────────── */
+function updateCountdown(){
+  const now  = new Date();
+  const diff = TARGET_DATE - now;
+  if(diff<=0){
+    document.getElementById("cd-days").textContent="🎉";
+    document.getElementById("cd-hrs").textContent="00";
+    document.getElementById("cd-min").textContent="00";
+    document.getElementById("cd-sec").textContent="00";
+    return;
+  }
+  const pad = n=>String(Math.floor(n)).padStart(2,"0");
+  document.getElementById("cd-days").textContent = pad(diff/864e5);
+  document.getElementById("cd-hrs").textContent  = pad((diff%864e5)/36e5);
+  document.getElementById("cd-min").textContent  = pad((diff%36e5)/6e4);
+  document.getElementById("cd-sec").textContent  = pad((diff%6e4)/1e3);
+}
+updateCountdown(); setInterval(updateCountdown,1000);
+
+/* ─────────────────────────────────────────────────────
+   TYPING ANIMATION (final section)
+──────────────────────────────────────────────────────── */
+const typedEl  = document.getElementById("typed-msg");
+const signOff  = document.getElementById("sign-off");
+let typingDone = false;
+
+function startTyping(){
+  if(typingDone) return;
+  typingDone = true;
+  const lines = FINAL_MSG.split("\n");
+  let lineI=0, charI=0;
+
+  // build cursor span
+  const cur = document.createElement("span");
+  cur.id = "type-cursor";
+  typedEl.appendChild(cur);
+
+  function type(){
+    if(lineI >= lines.length){
+      cur.remove();
+      signOff.classList.add("visible");
+      setTimeout(launchConfetti, 600);
+      return;
+    }
+    const line = lines[lineI];
+    if(charI < line.length){
+      cur.before(line[charI]);
+      charI++;
+      setTimeout(type, 38);
+    } else {
+      typedEl.insertBefore(document.createElement("br"), cur);
+      lineI++; charI=0;
+      setTimeout(type, 160);
+    }
+  }
+  type();
+}
+
+// Trigger typing when final section enters view
+new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting) startTyping();
+},{threshold:.3}).observe(document.getElementById("final"));
+
+/* ─────────────────────────────────────────────────────
+   CONFETTI
+──────────────────────────────────────────────────────── */
+function launchConfetti(){
+  const canvas = document.getElementById("confetti-canvas");
+  const ctx    = canvas.getContext("2d");
+  canvas.width  = innerWidth;
+  canvas.height = innerHeight;
+  const pieces  = [];
+  const colours = ["#c8a96e","#6ec8c0","#e8e0d4","#fff","#ffd700","#a0e9e5"];
+  for(let i=0;i<160;i++) pieces.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height - canvas.height,
+    w: Math.random()*10+4,
+    h: Math.random()*6+2,
+    c: colours[Math.floor(Math.random()*colours.length)],
+    r: Math.random()*Math.PI*2,
+    vx: (Math.random()-.5)*3,
+    vy: Math.random()*3+1.5,
+    vr: (Math.random()-.5)*.12,
+    op: 1
+  });
+  let frames=0;
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      if(frames>120) p.op-=.012;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.op);
+      ctx.translate(p.x,p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    });
+    frames++;
+    if(frames<260) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  })();
+}
+
+/* ─────────────────────────────────────────────────────
+   EASTER EGG
+──────────────────────────────────────────────────────── */
+const easterBtn = document.getElementById("easter-btn");
+const toast     = document.getElementById("toast");
+easterBtn.addEventListener("click",()=>{
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),3200);
+  launchConfetti();
+});
+</script>
+</body>
+</html>
